@@ -34,7 +34,7 @@ class JdSeckill(object):
         self.__seckill()
 
     def wait_time(self):
-        time.sleep(random.randint(100, 250) / 1000)
+        time.sleep(random.randint(100, 200) / 1000)
 
 
     def seckill_by_proc_pool(self, work_count=3): #线程
@@ -42,14 +42,16 @@ class JdSeckill(object):
         多进程进行抢购
         work_count：进程数量
         """
-        self.timers.start() #等待时间
+        """
+        self.timers.ready() #等待时间
         self.login() #登录
         self.user_info = dict()
         self.user_info = self._get_seckill_order_data()
+        """
 
         with ProcessPoolExecutor(work_count) as pool:
             for i in range(work_count):
-                pool.submit(self.seckill) #冲冲冲
+                pool.submit(self.seckill)
 
     def __reserve(self):
         """
@@ -63,19 +65,26 @@ class JdSeckill(object):
             except Exception as e:
                 logger.info('预约发生异常!', e)
 
+
+    sum_t = 0.0
+    sum_a = 0.0
     def __seckill(self):
         """
         抢购
         """
         count = 0
-        while count < 40:
-            count = count + 1
+        self.timers.start()
+        #print(datetime.datetime.now().strftime('%Y-%m-%d '))
+        while self.sum_a < 3.0:
+            time_start = time.time()
             try:
                 self.request_seckill_url()
                 self.request_seckill_checkout_page()
                 self.submit_seckill_order(self.user_info)
             except Exception as e:
                 logger.info('抢购发生异常，稍后继续执行！', e)
+            time_end = time.time()  # 结束计时
+            self.sum_a = (time_end - time_start) + self.sum_a  # 运行所花时间
 
     def login(self):
         for flag in range(1, 3):
@@ -173,7 +182,8 @@ class JdSeckill(object):
             'Host': 'itemko.jd.com',
             'Referer': 'https://item.jd.com/{}.html'.format(self.sku_id),
         }
-        while True:
+        while self.sum_t < 2.0:
+            time_start = time.time()  # 开始计时
             resp = self.session.get(url=url, headers=headers, params=payload)
             resp_json = parse_json(resp.text)
             if resp_json.get('url'):
@@ -187,6 +197,8 @@ class JdSeckill(object):
                 return seckill_url
             else:
                 logger.info("抢购链接获取失败，稍后自动重试")
+                time_end = time.time()  # 结束计时
+                self.sum_t = (time_end - time_start) + self.sum_t  # 运行所花时间
                 self.wait_time()
 
     def request_seckill_url(self):
@@ -311,7 +323,7 @@ class JdSeckill(object):
             data=self.seckill_order_data.get(
                 self.sku_id),
             headers=headers)
-        resp_json = parse_json(resp.text) #出错
+        resp_json = parse_json(resp.text)
         # 返回信息
         # 抢购失败：
         # {'errorMessage': '很遗憾没有抢到，再接再厉哦。', 'orderId': 0, 'resultCode': 60074, 'skuId': 0, 'success': False}
