@@ -4,7 +4,7 @@ import time
 from jd_logger import logger
 from timer import Timer
 import requests
-from util import parse_json, get_session, get_sku_title,send_wechat
+from util import parse_json, send_wechat, get_session, get_sku_title
 from config import global_config
 from concurrent.futures import ProcessPoolExecutor
 
@@ -14,7 +14,7 @@ class JdSeckill(object):
         # 初始化信息
         self.session = get_session()
         self.sku_id = global_config.getRaw('config', 'sku_id')
-        self.seckill_num = 2
+        self.seckill_num = 1 #抢几瓶
         self.seckill_init_info = dict()
         self.seckill_url = dict()
         self.seckill_order_data = dict()
@@ -42,12 +42,10 @@ class JdSeckill(object):
         多进程进行抢购
         work_count：进程数量
         """
-        """
         self.timers.ready() #等待时间
         self.login() #登录
         self.user_info = dict()
         self.user_info = self._get_seckill_order_data()
-        """
 
         with ProcessPoolExecutor(work_count) as pool:
             for i in range(work_count):
@@ -72,13 +70,11 @@ class JdSeckill(object):
         """
         抢购
         """
-        count = 0
         self.timers.start()
-        #print(datetime.datetime.now().strftime('%Y-%m-%d '))
-        while self.sum_a < 3.0:
+        self.request_seckill_url()
+        while self.sum_a < 2.0:
             time_start = time.time()
             try:
-                self.request_seckill_url()
                 self.request_seckill_checkout_page()
                 self.submit_seckill_order(self.user_info)
             except Exception as e:
@@ -323,7 +319,12 @@ class JdSeckill(object):
             data=self.seckill_order_data.get(
                 self.sku_id),
             headers=headers)
-        resp_json = parse_json(resp.text)
+        resp_json = None
+        try:
+            resp_json = parse_json(resp.text)
+        except Exception as e:
+            logger.info('抢购失败，返回信息:{}'.format(resp.text[0: 128]))
+            return False
         # 返回信息
         # 抢购失败：
         # {'errorMessage': '很遗憾没有抢到，再接再厉哦。', 'orderId': 0, 'resultCode': 60074, 'skuId': 0, 'success': False}
