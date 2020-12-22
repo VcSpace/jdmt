@@ -94,7 +94,7 @@ def get_session():
     return session
 
 def get_sku_title():
-    """获取商品名称"""
+    #获取商品名称
     url = 'https://item.jd.com/{}.html'.format(global_config.getRaw('config','sku_id'))
     session = get_session()
     resp = session.get(url).content
