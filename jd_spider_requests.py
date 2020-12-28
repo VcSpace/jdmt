@@ -18,6 +18,7 @@ class JdSeckill(object):
         self.seckill_init_info = dict()
         self.seckill_url = dict()
         self.seckill_order_data = dict()
+        self.user_info = dict()
         self.timers = Timer()
         self.default_user_agent = global_config.getRaw('config', 'DEFAULT_USER_AGENT')
 
@@ -44,7 +45,6 @@ class JdSeckill(object):
         """
         self.timers.ready() #等待时间
         self.login() #登录
-        self.user_info = dict()
         self.user_info = self._get_seckill_order_data()
 
         with ProcessPoolExecutor(work_count) as pool:
@@ -336,16 +336,23 @@ class JdSeckill(object):
             order_id = resp_json.get('orderId')
             total_money = resp_json.get('totalMoney')
             pay_url = 'https:' + resp_json.get('pcUrl')
+            logger.info("***********************************")
+            logger.info('用户:{}'.format(self.get_username()))
             logger.info(
                 '抢购成功，订单号:{}, 总价:{}, 电脑端付款链接:{}'.format(order_id,total_money,pay_url)
                 )
+            logger.info("***********************************")
+            """
             if global_config.getRaw('messenger', 'enable') == 'true':
                 success_message = "抢购成功，订单号:{}, 总价:{}, 电脑端付款链接:{}".format(order_id, total_money, pay_url)
                 send_wechat(success_message)
+            """
             return True
         else:
             logger.info('抢购失败，返回信息:{}'.format(resp_json))
+            """
             if global_config.getRaw('messenger', 'enable') == 'true':
                 error_message = '抢购失败，返回信息:{}'.format(resp_json)
                 send_wechat(error_message)
+            """
             return False

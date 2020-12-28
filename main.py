@@ -1,4 +1,6 @@
 import sys
+import platform
+import os
 from jd_spider_requests import JdSeckill
 
 
@@ -21,3 +23,8 @@ if __name__ == '__main__':
         print('没有此功能')
         sys.exit(1)
 
+
+    print('操作完成')
+    sys = platform.system()
+    if sys == "Windows":
+        os.system('pause')
