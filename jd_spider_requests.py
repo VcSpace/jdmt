@@ -4,7 +4,7 @@ import time
 from jd_logger import logger
 from timer import Timer
 import requests
-from util import parse_json, send_wechat, get_session, get_sku_title
+from util import parse_json, send_wechat, get_session, get_sku_title, get_random_useragent
 from config import global_config
 from concurrent.futures import ProcessPoolExecutor
 
@@ -14,13 +14,14 @@ class JdSeckill(object):
         # 初始化信息
         self.session = get_session()
         self.sku_id = global_config.getRaw('config', 'sku_id')
-        self.seckill_num = 1 #抢几瓶
+        self.seckill_num = 2 #抢几瓶
         self.seckill_init_info = dict()
         self.seckill_url = dict()
         self.seckill_order_data = dict()
         self.user_info = dict()
         self.timers = Timer()
-        self.default_user_agent = global_config.getRaw('config', 'DEFAULT_USER_AGENT')
+        self.default_user_agent = get_random_useragent()
+
 
     def reserve(self):
         """
