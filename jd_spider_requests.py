@@ -39,14 +39,16 @@ class JdSeckill(object):
         time.sleep(random.randint(100, 200) / 1000)
 
 
-    def seckill_by_proc_pool(self, work_count=3): #线程
+    def seckill_by_proc_pool(self, work_count=5): #线程
         """
         多进程进行抢购
         work_count：进程数量
         """
         self.timers.ready() #等待时间
+        """
         self.login() #登录
         self.user_info = self._get_seckill_order_data()
+        """
 
         with ProcessPoolExecutor(work_count) as pool:
             for i in range(work_count):
@@ -76,6 +78,7 @@ class JdSeckill(object):
         while self.sum_a < 2.0:
             time_start = time.time()
             try:
+                pass
                 self.request_seckill_checkout_page()
                 self.submit_seckill_order(self.user_info)
             except Exception as e:
