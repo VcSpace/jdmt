@@ -5,7 +5,7 @@ from jd_logger import logger
 from config import global_config
 
 class Timer(object):
-    def __init__(self, sleep_interval=0.3):
+    def __init__(self, sleep_interval=0.2):
         # '2018-09-28 22:45:50.000'
         self.start_time = datetime.strptime(global_config.getRaw('config','buy_time'), "%Y-%m-%d %H:%M:%S.%f")
         self.ready_time = datetime.strptime(global_config.getRaw('config','ready_time'), "%Y-%m-%d %H:%M:%S.%f")
