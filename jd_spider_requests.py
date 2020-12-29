@@ -45,10 +45,8 @@ class JdSeckill(object):
         work_count：进程数量
         """
         self.timers.ready() #等待时间
-        """
         self.login() #登录
         self.user_info = self._get_seckill_order_data()
-        """
 
         with ProcessPoolExecutor(work_count) as pool:
             for i in range(work_count):
@@ -85,6 +83,7 @@ class JdSeckill(object):
                 logger.info('抢购发生异常，稍后继续执行！', e)
             time_end = time.time()  # 结束计时
             self.sum_a = (time_end - time_start) + self.sum_a  # 运行所花时间
+
 
     def login(self):
         for flag in range(1, 3):
