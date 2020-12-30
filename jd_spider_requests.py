@@ -1,9 +1,13 @@
 import random
 import sys
+import os
 import time
 from jd_logger import logger
 from timer import Timer
 import requests
+import smtplib
+from email.mime.text import MIMEText
+from email.header import Header
 from util import parse_json, send_wechat, get_session, get_sku_title, get_random_useragent
 from config import global_config
 from concurrent.futures import ProcessPoolExecutor
@@ -72,7 +76,7 @@ class JdSeckill(object):
         """
         self.timers.start()
         self.request_seckill_url()
-        while self.sum_a < 2.0:
+        while self.sum_a < 3.0:
             time_start = time.time()
             try:
                 self.request_seckill_checkout_page()
@@ -178,7 +182,7 @@ class JdSeckill(object):
             'Host': 'itemko.jd.com',
             'Referer': 'https://item.jd.com/{}.html'.format(self.sku_id),
         }
-        while self.sum_t < 3.0:
+        while self.sum_t < 5.0:
             time_start = time.time()  # 开始计时
             resp = self.session.get(url=url, headers=headers, params=payload)
             resp_json = parse_json(resp.text)
@@ -342,6 +346,36 @@ class JdSeckill(object):
                 '抢购成功，订单号:{}, 总价:{}, 电脑端付款链接:{}'.format(order_id,total_money,pay_url)
                 )
             logger.info("***********************************")
+
+            #看日志很累 还是发邮件通知
+            from_addr = "5435@163.com"
+            passwd = "NRRTICETCSIPZGWH"
+            mailhost = "smtp.163.com"
+            to_addr = "6923403@qq.com"
+
+            wy_mail = smtplib.SMTP()  # 建立SMTP对象
+            wy_mail.connect(mailhost, 25)  # 25为SMTP常用端口
+            wy_mail.login(from_addr, passwd)  # 登录邮箱
+
+            content = "恭喜你抢购成功 \n" + "用户名: {} \n".format(self.get_username()) + "工作目录: {} \n".format(os.getcwd()) + \
+                      "抢购成功，订单号:{}, 总价:{}, 电脑端付款链接:{} \n".format(order_id, total_money, pay_url)
+
+            # 拼接题目字符串
+            subject = time.strftime("%Y-%m-%d_%H_%M", time.localtime(time.time())) + "_今日喜讯"
+
+            # 加工邮件message格式
+            msg = MIMEText(content, 'plain', 'utf-8')
+            msg['From'] = "Name1<5435@163.com>"
+            msg['To'] = "Name2<6923403@qq.com>"
+            msg['subject'] = Header(subject, 'utf-8')
+
+            try:
+                wy_mail.sendmail(from_addr, to_addr, msg.as_string())
+                print('邮件发送成功')
+            except Exception as e:
+                print(str(e))
+            wy_mail.quit()
+
             """
             if global_config.getRaw('messenger', 'enable') == 'true':
                 success_message = "抢购成功，订单号:{}, 总价:{}, 电脑端付款链接:{}".format(order_id, total_money, pay_url)
