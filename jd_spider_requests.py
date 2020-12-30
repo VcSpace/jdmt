@@ -76,7 +76,6 @@ class JdSeckill(object):
         """
         self.timers.start()
         while self.timers.end():
-            """
             self.request_seckill_url()
             while self.sum_a < 1.5:
                 time_start = time.time()
@@ -87,8 +86,7 @@ class JdSeckill(object):
                     logger.info('抢购发生异常，稍后继续执行！', e)
                 time_end = time.time()  # 结束计时
                 self.sum_a = (time_end - time_start) + self.sum_a  # 运行所花时间
-            """
-        logger.info('Test')
+
 
     def login(self):
         for flag in range(1, 3):
