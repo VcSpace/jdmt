@@ -39,7 +39,7 @@ class JdSeckill(object):
         time.sleep(random.randint(100, 200) / 1000)
 
 
-    def seckill_by_proc_pool(self, work_count=5): #线程
+    def seckill_by_proc_pool(self, work_count=3): #线程
         """
         多进程进行抢购
         work_count：进程数量
@@ -47,7 +47,6 @@ class JdSeckill(object):
         self.timers.ready() #等待时间
         self.login() #登录
         self.user_info = self._get_seckill_order_data()
-
         with ProcessPoolExecutor(work_count) as pool:
             for i in range(work_count):
                 pool.submit(self.seckill)
@@ -76,14 +75,12 @@ class JdSeckill(object):
         while self.sum_a < 2.0:
             time_start = time.time()
             try:
-                pass
                 self.request_seckill_checkout_page()
                 self.submit_seckill_order(self.user_info)
             except Exception as e:
                 logger.info('抢购发生异常，稍后继续执行！', e)
             time_end = time.time()  # 结束计时
             self.sum_a = (time_end - time_start) + self.sum_a  # 运行所花时间
-
 
     def login(self):
         for flag in range(1, 3):
@@ -181,7 +178,7 @@ class JdSeckill(object):
             'Host': 'itemko.jd.com',
             'Referer': 'https://item.jd.com/{}.html'.format(self.sku_id),
         }
-        while self.sum_t < 2.0:
+        while self.sum_t < 3.0:
             time_start = time.time()  # 开始计时
             resp = self.session.get(url=url, headers=headers, params=payload)
             resp_json = parse_json(resp.text)
@@ -292,8 +289,8 @@ class JdSeckill(object):
             'areaCode': '',
             'overseas': 0,
             'phone': '',
-            'eid': '3XCLFYGJCB3ARYBVGVSWFK3FYCHKQR4QNSPETRQPZRRV4HH6CCQHOENZKNEMGK7ISB6ZQ4OHXK57SSGHUBYDPZ5VRY',
-            'fp': '8e60270217a82715d579d35ca4a691db',
+            'eid': global_config.getRaw('config', 'eid'),
+            'fp': global_config.getRaw('config', 'fp'),
             'token': token,
             'pru': ''
         }
