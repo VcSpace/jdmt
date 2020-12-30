@@ -2,12 +2,12 @@ import random
 import sys
 import os
 import time
-from jd_logger import logger
-from timer import Timer
 import requests
 import smtplib
 from email.mime.text import MIMEText
 from email.header import Header
+from jd_logger import logger
+from timer import Timer
 from util import parse_json, send_wechat, get_session, get_sku_title, get_random_useragent
 from config import global_config
 from concurrent.futures import ProcessPoolExecutor
@@ -75,16 +75,20 @@ class JdSeckill(object):
         抢购
         """
         self.timers.start()
-        self.request_seckill_url()
-        while self.sum_a < 3.0:
-            time_start = time.time()
-            try:
-                self.request_seckill_checkout_page()
-                self.submit_seckill_order(self.user_info)
-            except Exception as e:
-                logger.info('抢购发生异常，稍后继续执行！', e)
-            time_end = time.time()  # 结束计时
-            self.sum_a = (time_end - time_start) + self.sum_a  # 运行所花时间
+        while self.timers.end():
+            """
+            self.request_seckill_url()
+            while self.sum_a < 1.5:
+                time_start = time.time()
+                try:
+                    self.request_seckill_checkout_page()
+                    self.submit_seckill_order(self.user_info)
+                except Exception as e:
+                    logger.info('抢购发生异常，稍后继续执行！', e)
+                time_end = time.time()  # 结束计时
+                self.sum_a = (time_end - time_start) + self.sum_a  # 运行所花时间
+            """
+        logger.info('Test')
 
     def login(self):
         for flag in range(1, 3):
@@ -182,7 +186,7 @@ class JdSeckill(object):
             'Host': 'itemko.jd.com',
             'Referer': 'https://item.jd.com/{}.html'.format(self.sku_id),
         }
-        while self.sum_t < 5.0:
+        while self.sum_t < 2.0:
             time_start = time.time()  # 开始计时
             resp = self.session.get(url=url, headers=headers, params=payload)
             resp_json = parse_json(resp.text)
@@ -375,6 +379,8 @@ class JdSeckill(object):
             except Exception as e:
                 print(str(e))
             wy_mail.quit()
+
+            self.timers.end_time = self.timers.start_time
 
             """
             if global_config.getRaw('messenger', 'enable') == 'true':
