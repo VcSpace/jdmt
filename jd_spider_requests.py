@@ -3,12 +3,11 @@ import sys
 import os
 import time
 import requests
-import smtplib
-from email.mime.text import MIMEText
-from email.header import Header
+import functools
+import pickle
 from jd_logger import logger
 from timer import Timer
-from util import parse_json, send_wechat, get_session, get_sku_title, get_random_useragent
+from util import parse_json, send_wechat, get_session, get_sku_title, get_random_useragent, send_mail
 from config import global_config
 from concurrent.futures import ProcessPoolExecutor
 
@@ -343,40 +342,17 @@ class JdSeckill(object):
             total_money = resp_json.get('totalMoney')
             pay_url = 'https:' + resp_json.get('pcUrl')
             logger.info("***********************************")
-            logger.info('用户:{}'.format(self.get_username()))
-            logger.info(
-                '抢购成功，订单号:{}, 总价:{}, 电脑端付款链接:{}'.format(order_id,total_money,pay_url)
-                )
+            #logger.info('用户:{}'.format(self.get_username()))
+            username_info = '用户:{}'.format(self.get_username())
+            logger.info(username_info)
+            success_order_url = "抢购成功，订单号:{}, 总价:{}, 电脑端付款链接:{}".format(order_id,total_money,pay_url)
+            logger.info(success_order_url)
             logger.info("***********************************")
 
             #看日志很累 还是发邮件通知
-            from_addr = "5435@163.com"
-            passwd = "NRRTICETCSIPZGWH"
-            mailhost = "smtp.163.com"
-            to_addr = "6923403@qq.com"
+            if global_config.getRaw('messenger', 'enable') == 'true':
+                send_mail(username_info, success_order_url)
 
-            wy_mail = smtplib.SMTP()  # 建立SMTP对象
-            wy_mail.connect(mailhost, 25)  # 25为SMTP常用端口
-            wy_mail.login(from_addr, passwd)  # 登录邮箱
-
-            content = "恭喜你抢购成功 \n" + "用户名: {} \n".format(self.get_username()) + "工作目录: {} \n".format(os.getcwd()) + \
-                      "抢购成功，订单号:{}, 总价:{}, 电脑端付款链接:{} \n".format(order_id, total_money, pay_url)
-
-            # 拼接题目字符串
-            subject = time.strftime("%Y-%m-%d_%H_%M", time.localtime(time.time())) + "_今日喜讯"
-
-            # 加工邮件message格式
-            msg = MIMEText(content, 'plain', 'utf-8')
-            msg['From'] = "5435<5435@163.com>"
-            msg['To'] = "6923403<6923403@qq.com>"
-            msg['subject'] = Header(subject, 'utf-8')
-
-            try:
-                wy_mail.sendmail(from_addr, to_addr, msg.as_string())
-                print('邮件发送成功')
-            except Exception as e:
-                print(str(e))
-            wy_mail.quit()
 
             self.timers.end_time = self.timers.start_time
 
