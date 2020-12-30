@@ -9,6 +9,7 @@ class Timer(object):
         # '2018-09-28 22:45:50.000'
         self.start_time = datetime.strptime(global_config.getRaw('config','buy_time'), "%Y-%m-%d %H:%M:%S.%f")
         self.ready_time = datetime.strptime(global_config.getRaw('config','ready_time'), "%Y-%m-%d %H:%M:%S.%f")
+        self.end_time = datetime.strptime(global_config.getRaw('config','end_time'), "%Y-%m-%d %H:%M:%S.%f")
         self.sleep_interval = sleep_interval
 
     def ready(self):
@@ -29,4 +30,14 @@ class Timer(object):
                 break
             else:
                 time.sleep(self.sleep_interval)
+
+    def end(self):
+        now_time = datetime.now
+        while True:
+            if now_time() < self.end_time:
+                return True
+            else:
+                break
+        return False
+
 
