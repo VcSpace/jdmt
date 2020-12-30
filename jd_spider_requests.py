@@ -367,8 +367,8 @@ class JdSeckill(object):
 
             # 加工邮件message格式
             msg = MIMEText(content, 'plain', 'utf-8')
-            msg['From'] = "Name1<5435@163.com>"
-            msg['To'] = "Name2<6923403@qq.com>"
+            msg['From'] = "5435<5435@163.com>"
+            msg['To'] = "6923403<6923403@qq.com>"
             msg['subject'] = Header(subject, 'utf-8')
 
             try:
