@@ -139,3 +139,43 @@ def send_mail(user_name, buy_url):
     except Exception as e:
         print(str(e))
     wy_mail.quit()
+
+
+def response_status(resp):
+    if resp.status_code != requests.codes.OK:
+        print('Status: %u, Url: %s' % (resp.status_code, resp.url))
+        return False
+    return True
+
+def save_image(resp, image_file):
+    with open(image_file, 'wb') as f:
+        for chunk in resp.iter_content(chunk_size=1024):
+            f.write(chunk)
+
+def open_image(image_file):
+    if os.name == "nt":
+        os.system('start ' + image_file)  # for Windows
+    else:
+        if os.uname()[0] == "Linux":
+            if "deepin" in os.uname()[2]:
+                os.system("deepin-image-viewer " + image_file)  # for deepin
+            else:
+                os.system("eog " + image_file)  # for Linux
+        else:
+            os.system("open " + image_file)  # for Mac
+
+def add_bg_for_qr(qr_path):
+    try:
+        from PIL import Image
+        qr = Image.open(qr_path)
+        w = qr.width
+        h = qr.width
+        bg = Image.new("RGBA", (w * 2, h * 2), (255, 255, 255))
+        result = Image.new(bg.mode, (w * 2, h * 2))
+        result.paste(bg, box=(0, 0))
+        result.paste(qr, box=(int(w / 2), int(h / 2)))
+        result.save("qr_code.png")
+        return os.path.abspath("qr_code.png")
+    except ImportError:
+        print("加载PIL失败，不对登录二维码进行优化，请查看requirements.txt")
+        return qr_path
