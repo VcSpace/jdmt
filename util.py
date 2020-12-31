@@ -129,8 +129,8 @@ def send_mail(user_name, buy_url):
 
     # 加工邮件message格式
     msg = MIMEText(content, 'plain', 'utf-8')
-    msg['From'] = "5435<5435@163.com>"
-    msg['To'] = "6923403<6923403@qq.com>"
+    msg['From'] = "5435<{}>".format(from_addr)
+    msg['To'] = "6923403<{}>".format(to_addr)
     msg['subject'] = Header(subject, 'utf-8')
 
     try:
