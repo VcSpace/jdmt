@@ -11,10 +11,23 @@ from util import parse_json, send_wechat, get_session, get_sku_title, get_random
 from config import global_config
 from concurrent.futures import ProcessPoolExecutor
 
+"""
+class SpiderSession(object):
+    def __init__(self):
+        pass
+
+class QrLogin(object):
+    def __init__(self):
+        pass
+"""
 
 class JdSeckill(object):
     def __init__(self):
         # 初始化信息
+        #self.spider_session = SpiderSession()
+        #self.spider_session.load_cookies_from_local()
+        #self.qrlogin = QrLogin(self.spider_session)
+
         self.session = get_session()
         self.sku_id = global_config.getRaw('config', 'sku_id')
         self.seckill_num = 2 #抢几瓶
@@ -24,7 +37,6 @@ class JdSeckill(object):
         self.user_info = dict()
         self.timers = Timer()
         self.default_user_agent = get_random_useragent()
-
 
     def reserve(self):
         """
@@ -50,6 +62,7 @@ class JdSeckill(object):
         self.timers.ready() #等待时间
         self.login() #登录
         self.user_info = self._get_seckill_order_data()
+
         with ProcessPoolExecutor(work_count) as pool:
             for i in range(work_count):
                 pool.submit(self.seckill)
@@ -76,6 +89,7 @@ class JdSeckill(object):
         self.timers.start()
         while self.timers.end():
             self.request_seckill_url()
+            self.sum_a = 0.0
             while self.sum_a < 1.5:
                 time_start = time.time()
                 try:
@@ -132,9 +146,11 @@ class JdSeckill(object):
             try:
                 self.session.get(url='https:' + reserve_url)
                 logger.info('预约成功，已获得抢购资格 / 您已成功预约过了，无需重复预约')
+                """
                 if global_config.getRaw('messenger', 'enable') == 'true':
                     success_message = "预约成功，已获得抢购资格 / 您已成功预约过了，无需重复预约"
                     send_wechat(success_message)
+                """
                 break
             except Exception as e:
                 logger.error('预约失败正在重试...')
@@ -183,6 +199,7 @@ class JdSeckill(object):
             'Host': 'itemko.jd.com',
             'Referer': 'https://item.jd.com/{}.html'.format(self.sku_id),
         }
+        self.sum_t = 0.0
         while self.sum_t < 2.0:
             time_start = time.time()  # 开始计时
             resp = self.session.get(url=url, headers=headers, params=payload)
@@ -353,7 +370,7 @@ class JdSeckill(object):
             if global_config.getRaw('messenger', 'enable') == 'true':
                 send_mail(username_info, success_order_url)
 
-
+            self.sum_a = 5.0
             self.timers.end_time = self.timers.start_time
 
             """
