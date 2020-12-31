@@ -11,23 +11,10 @@ from util import parse_json, send_wechat, get_session, get_sku_title, get_random
 from config import global_config
 from concurrent.futures import ProcessPoolExecutor
 
-"""
-class SpiderSession(object):
-    def __init__(self):
-        pass
-
-class QrLogin(object):
-    def __init__(self):
-        pass
-"""
 
 class JdSeckill(object):
     def __init__(self):
         # 初始化信息
-        #self.spider_session = SpiderSession()
-        #self.spider_session.load_cookies_from_local()
-        #self.qrlogin = QrLogin(self.spider_session)
-
         self.session = get_session()
         self.sku_id = global_config.getRaw('config', 'sku_id')
         self.seckill_num = 2 #抢几瓶
