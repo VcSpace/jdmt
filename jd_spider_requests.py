@@ -322,56 +322,55 @@ class JdSeckill(object):
             'Referer': 'https://marathon.jd.com/seckill/seckill.action?skuId={0}&num={1}&rid={2}'.format(
                 self.sku_id, self.seckill_num, int(time.time())),
         }
-        for a in range(2):
-            resp = self.session.post(
-                url=url,
-                params=payload,
-                data=self.seckill_order_data.get(
-                    self.sku_id),
-                headers=headers)
-            resp_json = None
-            try:
-                resp_json = parse_json(resp.text)
-            except Exception as e:
-                logger.info('抢购失败，返回信息_Resp:{}'.format(resp.text[0: 128]))
-                return False
-            # 返回信息
-            # 抢购失败：
-            # {'errorMessage': '很遗憾没有抢到，再接再厉哦。', 'orderId': 0, 'resultCode': 60074, 'skuId': 0, 'success': False}
-            # {'errorMessage': '抱歉，您提交过快，请稍后再提交订单！', 'orderId': 0, 'resultCode': 60017, 'skuId': 0, 'success': False}
-            # {'errorMessage': '系统正在开小差，请重试~~', 'orderId': 0, 'resultCode': 90013, 'skuId': 0, 'success': False}
-            # 抢购成功：
-            # {"appUrl":"xxxxx","orderId":820227xxxxx,"pcUrl":"xxxxx","resultCode":0,"skuId":0,"success":true,"totalMoney":"xxxxx"}
-            if resp_json.get('success'):
-                order_id = resp_json.get('orderId')
-                total_money = resp_json.get('totalMoney')
-                pay_url = 'https:' + resp_json.get('pcUrl')
-                logger.info("***********************************")
-                #logger.info('用户:{}'.format(self.get_username()))
-                username_info = '用户:{}'.format(self.get_username())
-                logger.info(username_info)
-                success_order_url = "抢购成功，订单号:{}, 总价:{}, 电脑端付款链接:{}".format(order_id,total_money,pay_url)
-                logger.info(success_order_url)
-                logger.info("***********************************")
+        resp = self.session.post(
+            url=url,
+            params=payload,
+            data=self.seckill_order_data.get(
+                self.sku_id),
+            headers=headers)
+        resp_json = None
+        try:
+            resp_json = parse_json(resp.text)
+        except Exception as e:
+            logger.info('抢购失败，返回信息_Resp:{}'.format(resp.text[0: 128]))
+            return False
+        # 返回信息
+        # 抢购失败：
+        # {'errorMessage': '很遗憾没有抢到，再接再厉哦。', 'orderId': 0, 'resultCode': 60074, 'skuId': 0, 'success': False}
+        # {'errorMessage': '抱歉，您提交过快，请稍后再提交订单！', 'orderId': 0, 'resultCode': 60017, 'skuId': 0, 'success': False}
+        # {'errorMessage': '系统正在开小差，请重试~~', 'orderId': 0, 'resultCode': 90013, 'skuId': 0, 'success': False}
+        # 抢购成功：
+        # {"appUrl":"xxxxx","orderId":820227xxxxx,"pcUrl":"xxxxx","resultCode":0,"skuId":0,"success":true,"totalMoney":"xxxxx"}
+        if resp_json.get('success'):
+            order_id = resp_json.get('orderId')
+            total_money = resp_json.get('totalMoney')
+            pay_url = 'https:' + resp_json.get('pcUrl')
+            logger.info("***********************************")
+            #logger.info('用户:{}'.format(self.get_username()))
+            username_info = '用户:{}'.format(self.get_username())
+            logger.info(username_info)
+            success_order_url = "抢购成功，订单号:{}, 总价:{}, 电脑端付款链接:{}".format(order_id,total_money,pay_url)
+            logger.info(success_order_url)
+            logger.info("***********************************")
 
-                #看日志很累 还是发邮件通知
-                if global_config.getRaw('messenger', 'enable') == 'true':
-                    send_mail(username_info, success_order_url)
+            #看日志很累 还是发邮件通知
+            if global_config.getRaw('messenger', 'enable') == 'true':
+                send_mail(username_info, success_order_url)
 
-                self.sum_a = 5.0
-                self.timers.end_time = self.timers.start_time
+            self.sum_a = 5.0
+            self.timers.end_time = self.timers.start_time
 
-                """
-                if global_config.getRaw('messenger', 'enable') == 'true':
-                    success_message = "抢购成功，订单号:{}, 总价:{}, 电脑端付款链接:{}".format(order_id, total_money, pay_url)
-                    send_wechat(success_message)
-                """
-                return True
-            else:
-                logger.info('抢购失败，返回信息:{}'.format(resp_json))
-                """
-                if global_config.getRaw('messenger', 'enable') == 'true':
-                    error_message = '抢购失败，返回信息:{}'.format(resp_json)
-                    send_wechat(error_message)
-                """
-                #return False
+            """
+            if global_config.getRaw('messenger', 'enable') == 'true':
+                success_message = "抢购成功，订单号:{}, 总价:{}, 电脑端付款链接:{}".format(order_id, total_money, pay_url)
+                send_wechat(success_message)
+            """
+            return True
+        else:
+            logger.info('抢购失败，返回信息:{}'.format(resp_json))
+            """
+            if global_config.getRaw('messenger', 'enable') == 'true':
+                error_message = '抢购失败，返回信息:{}'.format(resp_json)
+                send_wechat(error_message)
+            """
+            #return False
