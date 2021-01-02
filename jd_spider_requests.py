@@ -236,12 +236,13 @@ class QrLogin:
 
         # get QR code ticket
         ticket = None
-        retry_times = 85
+        retry_times = 30
+        time.sleep(10)
         for _ in range(retry_times):
             ticket = self._get_qrcode_ticket()
             if ticket:
                 break
-            time.sleep(2)
+            time.sleep(5)
         else:
             logger.info('二维码过期，请重新获取扫描')
 
