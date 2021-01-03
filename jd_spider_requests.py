@@ -648,7 +648,7 @@ class JdSeckill(object):
             logger.info("***********************************")
 
             #看日志很累 还是发邮件通知
-            if global_config.getRaw('messenger', 'enable') == 'true':
+            if global_config.getRaw('messenger', 'email_enable') == 'true':
                 send_mail(username_info, success_order_url)
 
             self.sum_a = 5.0
