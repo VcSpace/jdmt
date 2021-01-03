@@ -243,7 +243,8 @@ class QrLogin:
             ticket = self._get_qrcode_ticket()
             if ticket:
                 break
-            time.sleep(5)
+            else:
+                time.sleep(5)
         else:
             logger.info('二维码过期，请重新获取扫描')
 
@@ -369,7 +370,7 @@ class JdSeckill(object):
                     logger.info('抢购发生异常，稍后继续执行！', e)
                 time_end = time.time()  # 结束计时
                 self.sum_a = (time_end - time_start) + self.sum_a  # 运行所花时间
-
+                self.flag = False
 
     def login(self):
         for flag in range(1, 3):
