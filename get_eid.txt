@@ -1,0 +1,14 @@
+"""
+#eid fp
+https://pay.jd.com/d/cashier/?orderId=
+
+        var riskInfo = {};
+        getJdEid(function(eid, fp, risk) {
+          if (eid && eid.length > 91) {
+            eid = "";
+          }
+          riskInfo.deviceId = eid;
+          riskInfo.fingerprint = fp;
+          riskInfo.jsContent = risk.jsContent;
+        });
+"""
