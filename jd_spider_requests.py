@@ -6,9 +6,10 @@ import requests
 import functools
 import pickle
 import json
+from lxml import etree
 from jd_logger import logger
 from timer import Timer
-from util import (parse_json, get_session, get_sku_title, get_random_useragent, send_mail,
+from util import (parse_json, get_random_useragent, send_mail,
                         response_status, save_image, open_image, add_bg_for_qr)
 from config import global_config
 from concurrent.futures import ProcessPoolExecutor
@@ -394,9 +395,17 @@ class JdSeckill(object):
                 continue
         sys.exit(1)
 
+    def get_sku_title(self):
+        """获取商品名称"""
+        url = 'https://item.jd.com/{}.html'.format(global_config.getRaw('config', 'sku_id'))
+        resp = self.session.get(url).content
+        x_data = etree.HTML(resp)
+        sku_title = x_data.xpath('/html/head/title/text()')
+        return sku_title[0]
+
     def make_reserve(self):
         """商品预约"""
-        logger.info('商品名称:{}'.format(get_sku_title()))
+        logger.info('商品名称:{}'.format(self.get_sku_title()))
         url = 'https://yushou.jd.com/youshouinfo.action?'
         payload = {
             'callback': 'fetchJSON',
