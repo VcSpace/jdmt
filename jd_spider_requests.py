@@ -360,7 +360,7 @@ class JdSeckill(object):
         while self.timers.end():
             self.request_seckill_url()
             self.sum_a = 0.0
-            while self.sum_a < 1.5:
+            while self.sum_a < 2.0:
                 time_start = time.time()
                 try:
                     self.request_seckill_checkout_page()
@@ -478,7 +478,7 @@ class JdSeckill(object):
             'Referer': 'https://item.jd.com/{}.html'.format(self.sku_id),
         }
         self.sum_t = 0.0
-        while self.sum_t < 2.0:
+        while self.sum_t < 3.0:
             time_start = time.time()  # 开始计时
             resp = self.session.get(url=url, headers=headers, params=payload)
             resp_json = parse_json(resp.text)
