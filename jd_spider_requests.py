@@ -359,18 +359,12 @@ class JdSeckill(object):
         """
         self.timers.start()
         while self.timers.end():
-            self.request_seckill_url()
-            self.sum_a = 0.0
-            while self.sum_a < 2.0:
-                time_start = time.time()
-                try:
-                    self.request_seckill_checkout_page()
-                    self.submit_seckill_order(self.user_info)
-                except Exception as e:
-                    logger.info('抢购发生异常，稍后继续执行！', e)
-                time_end = time.time()  # 结束计时
-                self.sum_a = (time_end - time_start) + self.sum_a  # 运行所花时间
-                self.flag = False
+            try:
+                self.request_seckill_url()
+                self.request_seckill_checkout_page()
+                self.submit_seckill_order(self.user_info)
+            except Exception as e:
+                logger.info('抢购发生异常，稍后继续执行！', e)
 
     def login(self):
         for flag in range(1, 3):
@@ -505,7 +499,7 @@ class JdSeckill(object):
         #logger.info('用户:{}'.format(self.get_username()))
         #logger.info('商品名称:{}'.format(get_sku_title()))
         self.seckill_url[self.sku_id] = self.get_seckill_url()
-        #logger.info('访问商品的抢购连接...')
+        logger.info('访问商品的抢购连接...')
         headers = {
             'User-Agent': self.default_user_agent,
             'Host': 'marathon.jd.com',
@@ -537,7 +531,7 @@ class JdSeckill(object):
         """获取秒杀初始化信息（包括：地址，发票，token）
         :return: 初始化信息组成的dict
         """
-        logger.info('获取秒杀初始化信息...')
+        #logger.info('获取秒杀初始化信息...')
         url = 'https://marathon.jd.com/seckillnew/orderService/pc/init.action'
         data = {
             'sku': self.sku_id,
@@ -609,7 +603,7 @@ class JdSeckill(object):
         }
         #self.seckill_order_data[self.sku_id] = self._get_seckill_order_data()
         self.seckill_order_data[self.sku_id] = data
-        logger.info('提交抢购订单...')
+        #logger.info('提交抢购订单...')
         headers = {
             'User-Agent': self.default_user_agent,
             'Host': 'marathon.jd.com',
@@ -622,12 +616,7 @@ class JdSeckill(object):
             data=self.seckill_order_data.get(
                 self.sku_id),
             headers=headers)
-        resp_json = None
-        try:
-            resp_json = parse_json(resp.text)
-        except Exception as e:
-            logger.info('抢购失败，返回信息_Resp:{}'.format(resp.text[0: 128]))
-            return False
+        resp_json = parse_json(resp.text)
         # 返回信息
         # 抢购失败：
         # {'errorMessage': '很遗憾没有抢到，再接再厉哦。', 'orderId': 0, 'resultCode': 60074, 'skuId': 0, 'success': False}
@@ -648,7 +637,7 @@ class JdSeckill(object):
             logger.info("***********************************")
 
             #看日志很累 还是发邮件通知
-            if global_config.getRaw('messenger', 'email_enable') == 'true':
+            if global_config.getRaw('messenger', 'email_enable') == 'True':
                 send_mail(username_info, success_order_url)
 
             self.sum_a = 5.0
@@ -662,6 +651,7 @@ class JdSeckill(object):
             return True
         else:
             logger.info('抢购失败，返回信息:{}'.format(resp_json))
+            logger.info('{}').format(resp.text)
             """
             if global_config.getRaw('messenger', 'enable') == 'true':
                 error_message = '抢购失败，返回信息:{}'.format(resp_json)
