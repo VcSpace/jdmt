@@ -237,14 +237,13 @@ class QrLogin:
 
         # get QR code ticket
         ticket = None
-        retry_times = 30
-        time.sleep(10)
+        retry_times = 17
         for _ in range(retry_times):
             ticket = self._get_qrcode_ticket()
             if ticket:
                 break
             else:
-                time.sleep(5)
+                time.sleep(10)
         else:
             logger.info('二维码过期，请重新获取扫描')
 
@@ -332,7 +331,13 @@ class JdSeckill(object):
         """
         self.timers.ready() #等待时间
         self.login() #登录
-        self.user_info = self._get_seckill_order_data()
+        i = 0
+        for i in range(3):
+            try:
+                self.user_info = self._get_seckill_order_data()
+                break
+            except:
+                logger.info("获取地址信息出错")
 
         with ProcessPoolExecutor(work_count) as pool:
             for i in range(work_count):
@@ -499,7 +504,7 @@ class JdSeckill(object):
         #logger.info('用户:{}'.format(self.get_username()))
         #logger.info('商品名称:{}'.format(get_sku_title()))
         self.seckill_url[self.sku_id] = self.get_seckill_url()
-        logger.info('访问商品的抢购连接...')
+        #logger.info('访问商品的抢购连接...')
         headers = {
             'User-Agent': self.default_user_agent,
             'Host': 'marathon.jd.com',
@@ -525,7 +530,7 @@ class JdSeckill(object):
             'Host': 'marathon.jd.com',
             'Referer': 'https://item.jd.com/100012043978.html',
         }
-        self.session.get(url=url, params=payload, headers=headers, allow_redirects=False)
+        self.session.get(url=url, params=payload, headers=headers, timeout=2, allow_redirects=False)
 
     def _get_seckill_init_info(self):
         """获取秒杀初始化信息（包括：地址，发票，token）
@@ -651,7 +656,7 @@ class JdSeckill(object):
             return True
         else:
             logger.info('抢购失败，返回信息:{}'.format(resp_json))
-            logger.info('{}').format(resp.text)
+            #logger.info('{}').format(resp.text)
             """
             if global_config.getRaw('messenger', 'enable') == 'true':
                 error_message = '抢购失败，返回信息:{}'.format(resp_json)
