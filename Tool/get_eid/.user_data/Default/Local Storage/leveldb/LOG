@@ -1,0 +1,5 @@
+2021/01/05-14:26:10.371 23923 Reusing MANIFEST leveldb/MANIFEST-000001
+2021/01/05-14:26:10.371 23923 Recovering log #3
+2021/01/05-14:26:10.371 23923 Reusing old log leveldb/000003.log 
+2021/01/05-14:26:20.197 23923 Level-0 table #5: started
+2021/01/05-14:26:20.203 23923 Level-0 table #5: 83748 bytes OK
