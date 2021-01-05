@@ -338,9 +338,12 @@ class JdSeckill(object):
             except:
                 logger.info("获取地址信息出错")
 
+        self.timers.start()
+        self.request_seckill_url()
         with ProcessPoolExecutor(work_count) as pool:
             for i in range(work_count):
                 pool.submit(self.seckill)
+
 
     def __reserve(self):
         """
@@ -361,15 +364,12 @@ class JdSeckill(object):
         """
         抢购
         """
-        self.timers.start()
         while self.timers.end():
-            self.request_seckill_url()
-            for _ in range(3):
-                try:
-                    self.request_seckill_checkout_page()
-                    self.submit_seckill_order(self.user_info)
-                except Exception as e:
-                    logger.info('抢购发生异常，稍后继续执行！', e)
+            try:
+                self.request_seckill_checkout_page()
+                self.submit_seckill_order(self.user_info)
+            except Exception as e:
+                logger.info('抢购发生异常，稍后继续执行！', e)
 
     def login(self):
         for flag in range(1, 3):
@@ -530,7 +530,7 @@ class JdSeckill(object):
             'Host': 'marathon.jd.com',
             'Referer': 'https://item.jd.com/100012043978.html',
         }
-        self.session.get(url=url, params=payload, headers=headers, timeout=2, allow_redirects=False)
+        self.session.get(url=url, params=payload, headers=headers, allow_redirects=False)
 
     def _get_seckill_init_info(self):
         """获取秒杀初始化信息（包括：地址，发票，token）
@@ -633,13 +633,10 @@ class JdSeckill(object):
             order_id = resp_json.get('orderId')
             total_money = resp_json.get('totalMoney')
             pay_url = 'https:' + resp_json.get('pcUrl')
-            logger.info("***********************************")
-            #logger.info('用户:{}'.format(self.get_username()))
             username_info = '用户:{}'.format(self.get_username())
             logger.info(username_info)
             success_order_url = "抢购成功，订单号:{}, 总价:{}, 电脑端付款链接:{}".format(order_id,total_money,pay_url)
             logger.info(success_order_url)
-            logger.info("***********************************")
 
             #看日志很累 还是发邮件通知
             if global_config.getRaw('messenger', 'email_enable') == 'True':
@@ -648,18 +645,7 @@ class JdSeckill(object):
             self.sum_a = 5.0
             self.timers.end_time = self.timers.start_time
 
-            """
-            if global_config.getRaw('messenger', 'enable') == 'true':
-                success_message = "抢购成功，订单号:{}, 总价:{}, 电脑端付款链接:{}".format(order_id, total_money, pay_url)
-                send_wechat(success_message)
-            """
             return True
         else:
             logger.info('抢购失败，返回信息:{}'.format(resp_json))
-            #logger.info('{}').format(resp.text)
-            """
-            if global_config.getRaw('messenger', 'enable') == 'true':
-                error_message = '抢购失败，返回信息:{}'.format(resp_json)
-                send_wechat(error_message)
-            """
-            #return False
+            return False
