@@ -324,7 +324,8 @@ class JdSeckill(object):
     def wait_time(self):
         time.sleep(random.randint(100, 200) / 1000)
 
-
+    sum_t = 0.0
+    sum_a = 0.0
     def seckill_by_proc_pool(self, work_count=3): #线程
         """
         多进程进行抢购
@@ -372,8 +373,6 @@ class JdSeckill(object):
                 logger.info('预约发生异常!', e)
 
 
-    sum_t = 0.0
-    sum_a = 0.0
     def __seckill(self):
         """
         抢购
