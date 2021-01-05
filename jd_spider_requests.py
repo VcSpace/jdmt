@@ -6,13 +6,14 @@ import requests
 import functools
 import pickle
 import json
+import threading
 from lxml import etree
 from jd_logger import logger
 from timer import Timer
 from util import (parse_json, get_random_useragent, send_mail,
                         response_status, save_image, open_image, add_bg_for_qr)
 from config import global_config
-from concurrent.futures import ProcessPoolExecutor
+#from concurrent.futures import ProcessPoolExecutor
 
 class SpiderSession:
     """
@@ -338,11 +339,24 @@ class JdSeckill(object):
             except:
                 logger.info("获取地址信息出错")
 
+        thread_list = []
+        for _ in range(3):
+            t = threading.Thread(target=self.__seckill())
+            thread_list.append(t)
+
         self.timers.start()
         self.request_seckill_url()
-        with ProcessPoolExecutor(work_count) as pool:
+
+        for t_s in thread_list:
+            t_s.start()
+
+        for t_end in thread_list:
+            t_end.join()
+        """
+        #with ProcessPoolExecutor(work_count) as pool:
             for i in range(work_count):
                 pool.submit(self.seckill)
+        """
 
 
     def __reserve(self):
@@ -366,6 +380,7 @@ class JdSeckill(object):
         """
         while self.timers.end():
             try:
+                continue
                 self.request_seckill_checkout_page()
                 self.submit_seckill_order(self.user_info)
             except Exception as e:
