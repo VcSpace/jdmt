@@ -671,6 +671,7 @@ class JdSeckill(object):
                 print(str(e))
             wy_mail.quit()
 
+            time.sleep(10)
             #看日志很累 还是发邮件通知
 
             self.sum_a = 5.0
