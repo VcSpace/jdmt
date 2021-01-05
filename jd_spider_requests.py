@@ -331,7 +331,6 @@ class JdSeckill(object):
         """
         self.timers.ready() #等待时间
         self.login() #登录
-        i = 0
         for i in range(3):
             try:
                 self.user_info = self._get_seckill_order_data()
