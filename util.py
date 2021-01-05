@@ -1,13 +1,10 @@
 import json
 import random
 import requests
-import smtplib
 import time
 import os
 from config import global_config
 from lxml import etree
-from email.mime.text import MIMEText
-from email.header import Header
 
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36",
@@ -111,34 +108,6 @@ def send_wechat(message):
         'User-Agent':global_config.getRaw('config', 'DEFAULT_USER_AGENT')
     }
     requests.get(url, params=payload, headers=headers)
-
-def send_mail(user_name, buy_url):
-    mailhost = global_config.getRaw('messenger', 'email_host'),
-    from_addr = global_config.getRaw('messenger', 'email_send_user'),
-    passwd = global_config.getRaw('messenger', 'email_pwd'),
-    to_addr = global_config.getRaw('messenger', 'email_user'),
-
-    wy_mail = smtplib.SMTP()  # 建立SMTP对象
-    wy_mail.connect(mailhost, 25)  # 25为SMTP常用端口
-    wy_mail.login(from_addr, passwd)  # 登录邮箱
-
-    content = "恭喜你抢购成功 \n" + "{} \n".format(user_name) + "工作目录: {} \n".format(os.getcwd()) + "{}".format(buy_url)
-
-    # 拼接题目字符串
-    subject = time.strftime("%Y-%m-%d_%H_%M", time.localtime(time.time())) + "_今日喜讯"
-
-    # 加工邮件message格式
-    msg = MIMEText(content, 'plain', 'utf-8')
-    msg['From'] = "5435<{}>".format(from_addr)
-    msg['To'] = "6923403<{}>".format(to_addr)
-    msg['subject'] = Header(subject, 'utf-8')
-
-    try:
-        wy_mail.sendmail(from_addr, to_addr, msg.as_string())
-        print('邮件发送成功')
-    except Exception as e:
-        print(str(e))
-    wy_mail.quit()
 
 
 def response_status(resp):
