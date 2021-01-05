@@ -380,7 +380,6 @@ class JdSeckill(object):
         """
         while self.timers.end():
             try:
-                continue
                 self.request_seckill_checkout_page()
                 self.submit_seckill_order(self.user_info)
             except Exception as e:
