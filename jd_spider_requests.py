@@ -6,10 +6,13 @@ import requests
 import functools
 import pickle
 import json
+import smtplib
+from email.mime.text import MIMEText
+from email.header import Header
 from lxml import etree
 from jd_logger import logger
 from timer import Timer
-from util import (parse_json, get_random_useragent, send_mail,
+from util import (parse_json, get_random_useragent,
                         response_status, save_image, open_image, add_bg_for_qr)
 from config import global_config
 from concurrent.futures import ProcessPoolExecutor
@@ -640,9 +643,35 @@ class JdSeckill(object):
             logger.info(success_order_url)
             print('*****************')
 
+            mailhost = global_config.getRaw('messenger', 'email_host'),
+            from_addr = global_config.getRaw('messenger', 'email_send_user'),
+            passwd = global_config.getRaw('messenger', 'email_pwd'),
+            to_addr = global_config.getRaw('messenger', 'email_user'),
+
+            wy_mail = smtplib.SMTP()  # 建立SMTP对象
+            wy_mail.connect(mailhost, 25)  # 25为SMTP常用端口
+            wy_mail.login(from_addr, passwd)  # 登录邮箱
+
+            content = "恭喜你抢购成功 \n" + "{} \n".format(username_info) + "工作目录: {} \n".format(os.getcwd()) + "{}".format(
+                success_order_url)
+
+            # 拼接题目字符串
+            subject = time.strftime("%Y-%m-%d_%H_%M", time.localtime(time.time())) + "_今日喜讯"
+
+            # 加工邮件message格式
+            msg = MIMEText(content, 'plain', 'utf-8')
+            msg['From'] = "5435<{}>".format(from_addr)
+            msg['To'] = "6923403<{}>".format(to_addr)
+            msg['subject'] = Header(subject, 'utf-8')
+
+            try:
+                wy_mail.sendmail(from_addr, to_addr, msg.as_string())
+                print('邮件发送成功')
+            except Exception as e:
+                print(str(e))
+            wy_mail.quit()
+
             #看日志很累 还是发邮件通知
-            if global_config.getRaw('messenger', 'email_enable') == 'True':
-                send_mail(username_info, success_order_url)
 
             self.sum_a = 5.0
             self.timers.end_time = self.timers.start_time
