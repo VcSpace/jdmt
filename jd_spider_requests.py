@@ -635,8 +635,10 @@ class JdSeckill(object):
             pay_url = 'https:' + resp_json.get('pcUrl')
             username_info = '用户:{}'.format(self.get_username())
             logger.info(username_info)
+            print('*****************')
             success_order_url = "抢购成功，订单号:{}, 总价:{}, 电脑端付款链接:{}".format(order_id,total_money,pay_url)
             logger.info(success_order_url)
+            print('*****************')
 
             #看日志很累 还是发邮件通知
             if global_config.getRaw('messenger', 'email_enable') == 'True':
