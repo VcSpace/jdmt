@@ -608,7 +608,7 @@ class JdSeckill(object):
         }
         #self.seckill_order_data[self.sku_id] = self._get_seckill_order_data()
         self.seckill_order_data[self.sku_id] = data
-        #logger.info('提交抢购订单...')
+        logger.info('提交抢购订单...')
         headers = {
             'User-Agent': self.default_user_agent,
             'Host': 'marathon.jd.com',
