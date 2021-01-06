@@ -515,7 +515,6 @@ class JdSeckill(object):
                         headers=headers,
                         timeout=0.2,
                         allow_redirects=False)
-                    continue
                 except:
                     logger.info('访问抢购链接第一次取消')
             else:
