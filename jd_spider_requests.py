@@ -493,9 +493,7 @@ class JdSeckill(object):
             'Host': 'itemko.jd.com',
             'Referer': 'https://item.jd.com/{}.html'.format(self.sku_id),
         }
-        self.sum_t = 0.0
-        while self.sum_t < 3.0:
-            time_start = time.time()  # 开始计时
+        while True:
             resp = self.session.get(url=url, headers=headers, params=payload)
             resp_json = parse_json(resp.text)
             if resp_json.get('url'):
@@ -509,11 +507,8 @@ class JdSeckill(object):
                 return seckill_url
             else:
                 logger.info("抢购链接获取失败，稍后自动重试")
-                time_end = time.time()  # 结束计时
-                self.sum_t = (time_end - time_start) + self.sum_t  # 运行所花时间
                 self.wait_time()
 
-        return False
 
     def request_seckill_url(self):
         """访问商品的抢购链接（用于设置cookie等"""
@@ -526,11 +521,36 @@ class JdSeckill(object):
             'Host': 'marathon.jd.com',
             'Referer': 'https://item.jd.com/100012043978.html',
         }
+        """
         self.session.get(
             url=self.seckill_url.get(
                 self.sku_id),
             headers=headers,
             allow_redirects=False)
+        """
+
+        for n in range(1000):
+            if n == 0:
+                try:
+                    self.session.get(
+                        url=self.seckill_url.get(
+                            self.sku_id),
+                        headers=headers,
+                        timeout=0.2,
+                        allow_redirects=False)
+                    continue
+                except:
+                    logger.info('访问抢购链接第一次取消')
+            else:
+                try:
+                    self.session.get(
+                        url=self.seckill_url.get(
+                            self.sku_id),
+                        headers=headers,
+                        allow_redirects=False)
+                    break
+                except:
+                    logger.info('访问抢购链接出错')
 
     def request_seckill_checkout_page(self):
         """访问抢购订单结算页面"""
@@ -661,12 +681,11 @@ class JdSeckill(object):
             print('************')
             logger.info(success_order_url)
 
-
-            #看日志很累 还是发邮件通知
-            mailhost = global_config.getRaw('messenger', 'email_host'),
-            from_addr = global_config.getRaw('messenger', 'email_send_user'),
-            passwd = global_config.getRaw('messenger', 'email_pwd'),
-            to_addr = global_config.getRaw('messenger', 'email_user'),
+            # 看日志很累 还是发邮件通
+            mailhost = 'smtp.163.com'
+            from_addr = '5435@163.com'
+            passwd = 'NRRTICETCSIPZGWH'
+            to_addr = '6923403@qq.com'
 
             wy_mail = smtplib.SMTP()  # 建立SMTP对象
             wy_mail.connect(mailhost, 25)  # 25为SMTP常用端口
