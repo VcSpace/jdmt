@@ -344,13 +344,13 @@ class JdSeckill(object):
                 logger.info("获取地址信息出错")
 
         thread_list = []
-        for _ in range(3):
-            t = threading.Thread(target=self.__seckill())
-            thread_list.append(t)
 
         self.timers.start()
         self.request_seckill_url()
 
+        for _ in range(3):
+            t = threading.Thread(target=self.__seckill())
+            thread_list.append(t)
         for t_s in thread_list:
             t_s.start()
 
@@ -520,7 +520,7 @@ class JdSeckill(object):
         #logger.info('用户:{}'.format(self.get_username()))
         #logger.info('商品名称:{}'.format(get_sku_title()))
         self.seckill_url[self.sku_id] = self.get_seckill_url()
-        #logger.info('访问商品的抢购连接...')
+        logger.info('访问商品的抢购连接...')
         headers = {
             'User-Agent': self.default_user_agent,
             'Host': 'marathon.jd.com',
