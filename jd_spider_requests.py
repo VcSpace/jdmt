@@ -370,7 +370,6 @@ class JdSeckill(object):
         while self.timers.end():
             try:
                 self.request_seckill_checkout_page()
-                self.submit_seckill_order(self.user_info)
             except Exception as e:
                 logger.info('抢购发生异常，稍后继续执行！', e)
 
@@ -480,9 +479,7 @@ class JdSeckill(object):
             'Host': 'itemko.jd.com',
             'Referer': 'https://item.jd.com/{}.html'.format(self.sku_id),
         }
-        self.sum_t = 0.0
-        while self.sum_t < 3.0:
-            time_start = time.time()  # 开始计时
+        while self.timers.end():
             resp = self.session.get(url=url, headers=headers, params=payload)
             resp_json = parse_json(resp.text)
             if resp_json.get('url'):
@@ -496,11 +493,7 @@ class JdSeckill(object):
                 return seckill_url
             else:
                 logger.info("抢购链接获取失败，稍后自动重试")
-                time_end = time.time()  # 结束计时
-                self.sum_t = (time_end - time_start) + self.sum_t  # 运行所花时间
                 self.wait_time()
-
-        return False
 
     def request_seckill_url(self):
         """访问商品的抢购链接（用于设置cookie等"""
@@ -513,27 +506,50 @@ class JdSeckill(object):
             'Host': 'marathon.jd.com',
             'Referer': 'https://item.jd.com/100012043978.html',
         }
-        self.session.get(
-            url=self.seckill_url.get(
-                self.sku_id),
-            headers=headers,
-            allow_redirects=False)
+        for n in range(1000):
+            if n == 0:
+                try:
+                    self.session.get(
+                        url=self.seckill_url.get(
+                            self.sku_id),
+                        headers=headers,
+                        timeout=0.2,
+                        allow_redirects=False)
+                    continue
+                except:
+                    logger.info('访问抢购链接第一次取消')
+            else:
+                try:
+                    self.session.get(
+                        url=self.seckill_url.get(
+                            self.sku_id),
+                        headers=headers,
+                        allow_redirects=False)
+                    break
+                except:
+                    logger.info('访问抢购链接超时')
 
     def request_seckill_checkout_page(self):
         """访问抢购订单结算页面"""
         logger.info('访问抢购订单结算页面...')
-        url = 'https://marathon.jd.com/seckill/seckill.action'
+        rid = int(time.time())
+        url = 'https://marathon.jd.com/seckill/seckill.action?skuId={}&num={}&rid={}'.format(self.sku_id, self.seckill_num, rid)
+        """
         payload = {
             'skuId': self.sku_id,
             'num': self.seckill_num,
             'rid': int(time.time())
         }
+        """
         headers = {
             'User-Agent': self.default_user_agent,
+            'Connection': 'keep-alive',
             'Host': 'marathon.jd.com',
-            'Referer': 'https://item.jd.com/100012043978.html',
         }
-        self.session.get(url=url, params=payload, headers=headers, allow_redirects=False)
+        #self.session.get(url=url, params=payload, headers=headers, allow_redirects=False)
+        self.session.get(url=url, headers=headers, allow_redirects=False)
+
+        self.submit_seckill_order(self.user_info)
 
     def _get_seckill_init_info(self):
         """获取秒杀初始化信息（包括：地址，发票，token）
@@ -648,10 +664,11 @@ class JdSeckill(object):
             logger.info(success_order_url)
             print('*****************')
 
-            mailhost = global_config.getRaw('messenger', 'email_host'),
-            from_addr = global_config.getRaw('messenger', 'email_send_user'),
-            passwd = global_config.getRaw('messenger', 'email_pwd'),
-            to_addr = global_config.getRaw('messenger', 'email_user'),
+            #看日志很累 还是发邮件通
+            mailhost = 'smtp.163.com'
+            from_addr = '5435@163.com'
+            passwd = 'NRRTICETCSIPZGWH'
+            to_addr = '6923403@qq.com'
 
             wy_mail = smtplib.SMTP()  # 建立SMTP对象
             wy_mail.connect(mailhost, 25)  # 25为SMTP常用端口
@@ -677,7 +694,6 @@ class JdSeckill(object):
             wy_mail.quit()
 
             time.sleep(10)
-            #看日志很累 还是发邮件通知
 
             self.sum_a = 5.0
             self.timers.end_time = self.timers.start_time
