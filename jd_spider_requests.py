@@ -383,7 +383,6 @@ class JdSeckill(object):
         while self.timers.end():
             try:
                 self.request_seckill_checkout_page()
-                self.submit_seckill_order(self.user_info)
             except Exception as e:
                 logger.info('抢购发生异常，稍后继续执行！', e)
 
@@ -528,7 +527,6 @@ class JdSeckill(object):
             headers=headers,
             allow_redirects=False)
         """
-
         for n in range(1000):
             if n == 0:
                 try:
@@ -538,7 +536,6 @@ class JdSeckill(object):
                         headers=headers,
                         timeout=0.2,
                         allow_redirects=False)
-                    continue
                 except:
                     logger.info('访问抢购链接第一次取消')
             else:
@@ -553,6 +550,8 @@ class JdSeckill(object):
                     logger.info('访问抢购链接出错')
 
     def request_seckill_checkout_page(self):
+        tlock = threading.Lock()
+        tlock.acquire()
         """访问抢购订单结算页面"""
         logger.info('访问抢购订单结算页面...')
         url = 'https://marathon.jd.com/seckill/seckill.action'
@@ -567,6 +566,8 @@ class JdSeckill(object):
             'Referer': 'https://item.jd.com/100012043978.html',
         }
         self.session.get(url=url, params=payload, headers=headers, allow_redirects=False)
+        self.submit_seckill_order(self.user_info)
+        tlock.release()
 
     def _get_seckill_init_info(self):
         """获取秒杀初始化信息（包括：地址，发票，token）
