@@ -533,21 +533,18 @@ class JdSeckill(object):
         """访问抢购订单结算页面"""
         logger.info('访问抢购订单结算页面...')
         rid = int(time.time())
-        url = 'https://marathon.jd.com/seckill/seckill.action?skuId={}&num={}&rid={}'.format(self.sku_id, self.seckill_num, rid)
-        """
+        url = 'https://marathon.jd.com/seckill/seckill.action'
         payload = {
             'skuId': self.sku_id,
             'num': self.seckill_num,
             'rid': int(time.time())
         }
-        """
         headers = {
             'User-Agent': self.default_user_agent,
             'Connection': 'keep-alive',
             'Host': 'marathon.jd.com',
         }
-        #self.session.get(url=url, params=payload, headers=headers, allow_redirects=False)
-        self.session.get(url=url, headers=headers, allow_redirects=False)
+        self.session.get(url=url, params=payload, headers=headers, allow_redirects=False)
 
         self.submit_seckill_order(self.user_info)
 
