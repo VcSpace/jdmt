@@ -508,27 +508,11 @@ class JdSeckill(object):
             'Host': 'marathon.jd.com',
             'Referer': 'https://item.jd.com/100012043978.html',
         }
-        for n in range(1000):
-            if n == 0:
-                try:
-                    self.session.get(
-                        url=self.seckill_url.get(
-                            self.sku_id),
-                        headers=headers,
-                        timeout=0.05,
-                        allow_redirects=False)
-                except:
-                    logger.info('访问抢购链接第一次取消')
-            else:
-                try:
-                    self.session.get(
-                        url=self.seckill_url.get(
-                            self.sku_id),
-                        headers=headers,
-                        allow_redirects=False)
-                    break
-                except:
-                    logger.info('访问抢购链接超时')
+        self.session.get(
+            url=self.seckill_url.get(
+                self.sku_id),
+            headers=headers,
+            allow_redirects=False)
 
     def request_seckill_checkout_page(self):
         """访问抢购订单结算页面"""
@@ -643,7 +627,7 @@ class JdSeckill(object):
                 resp_json = parse_json(resp.text)
             except Exception as e:
                 logger.info('抢购失败，返回信息:{}'.format(resp.text[0: 128]))
-                continue
+                return False
             # 返回信息
             # 抢购失败：
             # {'errorMessage': '很遗憾没有抢到，再接再厉哦。', 'orderId': 0, 'resultCode': 60074, 'skuId': 0, 'success': False}
@@ -699,4 +683,5 @@ class JdSeckill(object):
                 return True
             else:
                 logger.info('抢购失败，返回信息:{}'.format(resp_json))
+                time.sleep(100 / 1000)
                 continue
