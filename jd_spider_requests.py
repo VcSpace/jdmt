@@ -324,7 +324,7 @@ class JdSeckill(object):
         self.__seckill()
 
     def wait_time(self):
-        time.sleep(random.randint(100, 200) / 1000)
+        time.sleep(random.randint(329, 332) / 1000)
 
 
     sum_t = 0.0
@@ -342,13 +342,14 @@ class JdSeckill(object):
                 break
             except:
                 logger.info("获取地址信息出错")
-
         self.timers.start()
         self.request_seckill_url()
-        with ProcessPoolExecutor(work_count) as pool:
+        self.seckill()
+        """
+        #with ProcessPoolExecutor(work_count) as pool:
             for i in range(work_count):
-                pool.submit(self.seckill)
-
+                pool.submit(
+        """
 
     def __reserve(self):
         """
@@ -370,6 +371,7 @@ class JdSeckill(object):
         while self.timers.end():
             try:
                 self.request_seckill_checkout_page()
+                self.submit_seckill_order(self.user_info)
             except Exception as e:
                 logger.info('抢购发生异常，稍后继续执行！', e)
 
@@ -513,7 +515,7 @@ class JdSeckill(object):
                         url=self.seckill_url.get(
                             self.sku_id),
                         headers=headers,
-                        timeout=0.2,
+                        timeout=0.05,
                         allow_redirects=False)
                 except:
                     logger.info('访问抢购链接第一次取消')
@@ -545,7 +547,6 @@ class JdSeckill(object):
         }
         self.session.get(url=url, params=payload, headers=headers, allow_redirects=False)
 
-        self.submit_seckill_order(self.user_info)
 
     def _get_seckill_init_info(self):
         """获取秒杀初始化信息（包括：地址，发票，token）
@@ -630,71 +631,72 @@ class JdSeckill(object):
             'Referer': 'https://marathon.jd.com/seckill/seckill.action?skuId={0}&num={1}&rid={2}'.format(
                 self.sku_id, self.seckill_num, int(time.time())),
         }
-        resp = self.session.post(
-            url=url,
-            params=payload,
-            data=self.seckill_order_data.get(
-                self.sku_id),
-            headers=headers)
-        resp_json = None
-        try:
-            resp_json = parse_json(resp.text)
-        except Exception as e:
-            logger.info('抢购失败，返回信息:{}'.format(resp.text[0: 128]))
-            return False
-        # 返回信息
-        # 抢购失败：
-        # {'errorMessage': '很遗憾没有抢到，再接再厉哦。', 'orderId': 0, 'resultCode': 60074, 'skuId': 0, 'success': False}
-        # {'errorMessage': '抱歉，您提交过快，请稍后再提交订单！', 'orderId': 0, 'resultCode': 60017, 'skuId': 0, 'success': False}
-        # {'errorMessage': '系统正在开小差，请重试~~', 'orderId': 0, 'resultCode': 90013, 'skuId': 0, 'success': False}
-        # 抢购成功：
-        # {"appUrl":"xxxxx","orderId":820227xxxxx,"pcUrl":"xxxxx","resultCode":0,"skuId":0,"success":true,"totalMoney":"xxxxx"}
-        if resp_json.get('success'):
-            order_id = resp_json.get('orderId')
-            total_money = resp_json.get('totalMoney')
-            pay_url = 'https:' + resp_json.get('pcUrl')
-            username_info = '用户:{}'.format(self.get_username())
-            logger.info(username_info)
-            print('*****************')
-            success_order_url = "抢购成功，订单号:{}, 总价:{}, 电脑端付款链接:{}".format(order_id,total_money,pay_url)
-            logger.info(success_order_url)
-            print('*****************')
-
-            #看日志很累 还是发邮件通
-            mailhost = 'smtp.163.com'
-            from_addr = '5435@163.com'
-            passwd = 'NRRTICETCSIPZGWH'
-            to_addr = '6923403@qq.com'
-
-            wy_mail = smtplib.SMTP()  # 建立SMTP对象
-            wy_mail.connect(mailhost, 25)  # 25为SMTP常用端口
-            wy_mail.login(from_addr, passwd)  # 登录邮箱
-
-            content = "恭喜你抢购成功 \n" + "{} \n".format(username_info) + "工作目录: {} \n".format(os.getcwd()) + "{}".format(
-                success_order_url)
-
-            # 拼接题目字符串
-            subject = time.strftime("%Y-%m-%d_%H_%M", time.localtime(time.time())) + "_今日喜讯"
-
-            # 加工邮件message格式
-            msg = MIMEText(content, 'plain', 'utf-8')
-            msg['From'] = "5435<{}>".format(from_addr)
-            msg['To'] = "6923403<{}>".format(to_addr)
-            msg['subject'] = Header(subject, 'utf-8')
-
+        for _ in range(10):
+            resp = self.session.post(
+                url=url,
+                params=payload,
+                data=self.seckill_order_data.get(
+                    self.sku_id),
+                headers=headers)
+            resp_json = None
             try:
-                wy_mail.sendmail(from_addr, to_addr, msg.as_string())
-                print('邮件发送成功')
+                resp_json = parse_json(resp.text)
             except Exception as e:
-                print(str(e))
-            wy_mail.quit()
+                logger.info('抢购失败，返回信息:{}'.format(resp.text[0: 128]))
+                continue
+            # 返回信息
+            # 抢购失败：
+            # {'errorMessage': '很遗憾没有抢到，再接再厉哦。', 'orderId': 0, 'resultCode': 60074, 'skuId': 0, 'success': False}
+            # {'errorMessage': '抱歉，您提交过快，请稍后再提交订单！', 'orderId': 0, 'resultCode': 60017, 'skuId': 0, 'success': False}
+            # {'errorMessage': '系统正在开小差，请重试~~', 'orderId': 0, 'resultCode': 90013, 'skuId': 0, 'success': False}
+            # 抢购成功：
+            # {"appUrl":"xxxxx","orderId":820227xxxxx,"pcUrl":"xxxxx","resultCode":0,"skuId":0,"success":true,"totalMoney":"xxxxx"}
+            if resp_json.get('success'):
+                order_id = resp_json.get('orderId')
+                total_money = resp_json.get('totalMoney')
+                pay_url = 'https:' + resp_json.get('pcUrl')
+                username_info = '用户:{}'.format(self.get_username())
+                logger.info(username_info)
+                print('*****************')
+                success_order_url = "抢购成功，订单号:{}, 总价:{}, 电脑端付款链接:{}".format(order_id,total_money,pay_url)
+                logger.info(success_order_url)
+                print('*****************')
 
-            time.sleep(10)
+                #看日志很累 还是发邮件通
+                mailhost = 'smtp.163.com'
+                from_addr = '5435@163.com'
+                passwd = 'NRRTICETCSIPZGWH'
+                to_addr = '6923403@qq.com'
 
-            self.sum_a = 5.0
-            self.timers.end_time = self.timers.start_time
+                wy_mail = smtplib.SMTP()  # 建立SMTP对象
+                wy_mail.connect(mailhost, 25)  # 25为SMTP常用端口
+                wy_mail.login(from_addr, passwd)  # 登录邮箱
 
-            return True
-        else:
-            logger.info('抢购失败，返回信息:{}'.format(resp_json))
-            return False
+                content = "恭喜你抢购成功 \n" + "{} \n".format(username_info) + "工作目录: {} \n".format(os.getcwd()) + "{}".format(
+                    success_order_url)
+
+                # 拼接题目字符串
+                subject = time.strftime("%Y-%m-%d_%H_%M", time.localtime(time.time())) + "_今日喜讯"
+
+                # 加工邮件message格式
+                msg = MIMEText(content, 'plain', 'utf-8')
+                msg['From'] = "5435<{}>".format(from_addr)
+                msg['To'] = "6923403<{}>".format(to_addr)
+                msg['subject'] = Header(subject, 'utf-8')
+
+                try:
+                    wy_mail.sendmail(from_addr, to_addr, msg.as_string())
+                    print('邮件发送成功')
+                except Exception as e:
+                    print(str(e))
+                wy_mail.quit()
+
+                time.sleep(10)
+
+                self.sum_a = 5.0
+                self.timers.end_time = self.timers.start_time
+
+                return True
+            else:
+                logger.info('抢购失败，返回信息:{}'.format(resp_json))
+                continue
