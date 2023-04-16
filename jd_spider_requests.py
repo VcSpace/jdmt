@@ -342,14 +342,10 @@ class JdSeckill(object):
                 break
             except:
                 logger.info("获取地址信息出错")
-        self.timers.start()
-        self.request_seckill_url()
-        self.seckill()
-        """
-        #with ProcessPoolExecutor(work_count) as pool:
+        
+        with ProcessPoolExecutor(work_count) as pool:
             for i in range(work_count):
-                pool.submit(
-        """
+                pool.submit(self.seckill)
 
     def __reserve(self):
         """
@@ -368,6 +364,7 @@ class JdSeckill(object):
         """
         抢购
         """
+        self.timers.start()
         while self.timers.end():
             try:
                 self.request_seckill_checkout_page()
